@@ -4,4 +4,4 @@
 window.GOOGLE_CLIENT_ID = "705258342790-1571al5ieedmtu76nihrqkapv4lnovjd.apps.googleusercontent.com";
 
 /* 2. 部署 Apps Script 为「网页应用程式」后取得的网址（结尾通常是 /exec） */
-window.APPS_SCRIPT_URL = "REPLACE_WITH_APPS_SCRIPT_WEB_APP_URL";
+window.APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAkUuC6y8rhHlLfCQDMWiqjJgKratRPSTH4GC_VMvLQLSMgyLXtKOJqSTEUT_hgZ2u/exec";
