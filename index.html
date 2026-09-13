@@ -220,7 +220,7 @@ input{font-family:inherit}
 "use strict";
 
 /* ============ constants ============ */
-var EMAIL_RE = /^[^\s@]+@moe-dl\.edu\.my$/i;
+var ALLOWED_EMAIL_DOMAINS = ["moe-dl.edu.my", "ipgm.edu.my"]; var EMAIL_RE = new RegExp("^[^\\s@]+@(" + ALLOWED_EMAIL_DOMAINS.join("|").replace(/\./g, "\\.") + ")$", "i");
 var TOTAL_PAGES = window.CONTENT_PAGES.length;
 /* GOOGLE_CLIENT_ID and APPS_SCRIPT_URL come from config.js */
 
@@ -343,7 +343,7 @@ function initGoogleSignIn(){
   google.accounts.id.initialize({
     client_id: window.GOOGLE_CLIENT_ID,
     callback: window.handleGoogleCredential,
-    hd: "moe-dl.edu.my"
+        /* 不设置 hd：允许多个网域登录，实际检查见 EMAIL_RE 与后端 */
   });
   google.accounts.id.renderButton(
     document.getElementById("gate-btn-holder"),
