@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>语文学习理论 — 学习元件</title>
+<style>
+:root{
+  --bg:#f7f7f5; --panel:#ffffff; --border:#e3e1da; --text:#2a2823; --text-dim:#6b6a63;
+  --accent:#8a5a3f; --accent-dim:#c9a988; --accent-bg:#f3ece5;
+  --ok:#2f7a4f; --ok-bg:#e8f4ec; --bad:#b3432f; --bad-bg:#fbebe7;
+  --nav-bg:#2e2a24; --nav-text:#ece8e0; --nav-text-dim:#a8a296; --nav-active:#4a3f33;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1a17; --panel:#242320; --border:#3a3830; --text:#ece8e0; --text-dim:#a8a296;
+    --accent:#d4a373; --accent-dim:#8a6a4f; --accent-bg:#332a20;
+    --ok:#7fd99f; --ok-bg:#1e3327; --bad:#e08a76; --bad-bg:#3a231e;
+    --nav-bg:#141310; --nav-text:#ece8e0; --nav-text-dim:#847e70; --nav-active:#26221b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1a17; --panel:#242320; --border:#3a3830; --text:#ece8e0; --text-dim:#a8a296;
+  --accent:#d4a373; --accent-dim:#8a6a4f; --accent-bg:#332a20;
+  --ok:#7fd99f; --ok-bg:#1e3327; --bad:#e08a76; --bad-bg:#3a231e;
+  --nav-bg:#141310; --nav-text:#ece8e0; --nav-text-dim:#847e70; --nav-active:#26221b;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.7; font-size:16px;
+}
+a{color:var(--accent)}
+img{max-width:100%}
+button{font-family:inherit; cursor:pointer}
+input{font-family:inherit}
+
+/* ---------- sign-in gate ---------- */
+#gate{
+  position:fixed; inset:0; background:var(--bg); z-index:50;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+#gate .card{
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:32px 28px; max-width:420px; width:100%; text-align:center;
+}
+#gate h1{font-size:1.3rem; margin:0 0 6px}
+#gate p.sub{color:var(--text-dim); font-size:.92rem; margin:0 0 22px; text-align:left}
+#gate-btn-holder{display:flex; justify-content:center; margin:18px 0}
+#gate .err{color:var(--bad); font-size:.88rem; margin:14px 0 0; display:none; text-align:left}
+#gate .hint{font-size:.78rem; color:var(--text-dim); margin-top:20px; line-height:1.6; text-align:left}
+#gate .loading{font-size:.85rem; color:var(--text-dim); display:none}
+
+/* ---------- app shell ---------- */
+#app{display:none; min-height:100vh}
+#app.ready{display:flex}
+#sidebar{
+  width:250px; flex:none; background:var(--nav-bg); color:var(--nav-text);
+  display:flex; flex-direction:column; height:100vh; position:sticky; top:0; overflow-y:auto;
+}
+#sidebar .brand{padding:18px 18px 12px; font-weight:700; font-size:1.05rem; border-bottom:1px solid rgba(255,255,255,.08)}
+#sidebar .brand small{display:block; font-weight:400; color:var(--nav-text-dim); font-size:.74rem; margin-top:3px}
+#navlist{list-style:none; margin:0; padding:8px 0; flex:1}
+#navlist li a{
+  display:flex; align-items:center; gap:9px; padding:9px 18px; color:var(--nav-text-dim);
+  text-decoration:none; font-size:.9rem; border-left:3px solid transparent;
+}
+#navlist li a .dot{width:16px; height:16px; border-radius:50%; border:1.5px solid currentColor; flex:none; display:flex; align-items:center; justify-content:center; font-size:.6rem}
+#navlist li a.visited .dot{background:var(--ok); border-color:var(--ok); color:#fff}
+#navlist li a.active{color:#fff; background:var(--nav-active); border-left-color:var(--accent); font-weight:600}
+#navlist li a.sub{padding-left:36px; font-size:.83rem}
+#navlist li.group-label{padding:12px 18px 4px; font-size:.7rem; letter-spacing:.04em; color:var(--nav-text-dim); text-transform:uppercase}
+#sidebar .progress-box{padding:14px 18px; border-top:1px solid rgba(255,255,255,.08)}
+#sidebar .progress-box .pbar{height:6px; background:rgba(255,255,255,.12); border-radius:4px; overflow:hidden; margin:6px 0}
+#sidebar .progress-box .pbar > div{height:100%; background:var(--accent)}
+#sidebar .progress-box .plabel{font-size:.76rem; color:var(--nav-text-dim)}
+#sidebar .who{padding:12px 18px; border-top:1px solid rgba(255,255,255,.08); font-size:.78rem; color:var(--nav-text-dim)}
+#sidebar .who b{color:var(--nav-text); display:block; font-size:.85rem; font-weight:600}
+#sidebar .who button{background:none; border:none; color:var(--nav-text-dim); text-decoration:underline; font-size:.75rem; padding:4px 0 0; cursor:pointer}
+#sidebar .sync-note{padding:0 18px 14px; font-size:.72rem; color:var(--nav-text-dim)}
+
+#main-col{flex:1; min-width:0; display:flex; flex-direction:column}
+#topbar{
+  display:none; align-items:center; justify-content:space-between; padding:10px 16px;
+  background:var(--panel); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;
+}
+#topbar button{background:none;border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text)}
+#main{flex:1; padding:32px 40px 64px; max-width:880px; width:100%; margin:0 auto}
+#main h2.page-title{font-size:1.55rem; margin:0 0 22px; padding-bottom:14px; border-bottom:2px solid var(--accent-dim)}
+
+.section-block{margin-bottom:28px}
+.section-block h3.sec-heading{
+  font-size:1.05rem; color:var(--accent); margin:0 0 12px; padding:8px 14px;
+  background:var(--accent-bg); border-radius:8px; border-left:4px solid var(--accent);
+}
+.content-block{font-size:1rem}
+.content-block p{margin:0 0 12px}
+.content-block table{width:100%; border-collapse:collapse; margin:12px 0}
+.content-block td,.content-block th{padding:8px 10px; vertical-align:top; border:none}
+.content-block img{border-radius:8px; display:block; margin:10px auto; max-width:100%; height:auto}
+.content-block video{width:100%; max-width:640px; border-radius:8px; display:block; margin:10px auto; background:#000}
+.content-block hr{border:none; border-top:1px solid var(--border); margin:20px 0}
+.content-block a{word-break:break-word}
+.content-block strong{color:var(--text)}
+
+.card-box{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow)}
+
+.tf-question{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; margin-bottom:14px; box-shadow:var(--shadow)}
+.tf-question .stem{font-weight:600; margin-bottom:10px}
+.tf-question .opts label{display:inline-flex; align-items:center; gap:6px; margin-right:22px; font-size:.94rem; cursor:pointer}
+.tf-feedback{margin-top:12px; padding:10px 12px; border-radius:8px; background:var(--bg); font-size:.92rem; display:none}
+.tf-feedback.show{display:block}
+.tf-feedback .verdict{font-weight:700; margin-right:6px}
+.tf-feedback .verdict.right{color:var(--ok)}
+.tf-feedback .verdict.wrong{color:var(--bad)}
+.hint-title{cursor:pointer; color:var(--accent); font-size:.85rem; text-decoration:underline; display:inline-block; margin:4px 0}
+.hint-content{display:none; font-size:.88rem; color:var(--text-dim); background:var(--bg); padding:8px 10px; border-radius:6px; margin-bottom:8px}
+.hint-content.show{display:block}
+
+.cloze-block{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow)}
+.cloze-block select{border:1px solid var(--border); border-radius:6px; padding:3px 6px; background:var(--bg); color:var(--text); font-size:.94rem; margin:0 2px}
+.cloze-block select.correct{background:var(--ok-bg); border-color:var(--ok)}
+.cloze-block select.incorrect{background:var(--bad-bg); border-color:var(--bad)}
+.cloze-block input.button{
+  background:var(--accent); color:#fff; border:none; border-radius:8px; padding:9px 20px;
+  font-size:.92rem; font-weight:600; margin-top:14px;
+}
+.cloze-block .score{margin-top:10px; font-weight:600}
+.cloze-block table{width:100%}
+
+.activity-box textarea{
+  width:100%; min-height:120px; border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+  background:var(--panel); color:var(--text); font-size:.96rem; font-family:inherit; resize:vertical;
+}
+.activity-box .save-row{display:flex; align-items:center; gap:12px; margin-top:8px}
+.activity-box button.save-btn{
+  background:var(--accent); color:#fff; border:none; border-radius:8px; padding:8px 18px; font-size:.9rem; font-weight:600;
+}
+.activity-box .saved-msg{font-size:.82rem; color:var(--ok); display:none}
+.activity-box .saved-msg.show{display:inline}
+
+.quiz-set{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; margin-bottom:24px; box-shadow:var(--shadow)}
+.quiz-set h4{margin:0 0 4px; font-size:1.05rem}
+.quiz-set .passline{color:var(--text-dim); font-size:.85rem; margin-bottom:16px}
+.quiz-q{margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--border)}
+.quiz-q:last-of-type{border-bottom:none}
+.quiz-q .stem{font-weight:600; margin-bottom:10px; white-space:pre-line}
+.quiz-q img{max-width:320px; border-radius:8px; margin:0 0 10px}
+.quiz-q .opt{display:flex; gap:8px; align-items:flex-start; padding:8px 10px; border-radius:8px; margin-bottom:6px; border:1px solid transparent; white-space:pre-line; cursor:pointer}
+.quiz-q .opt:hover{background:var(--bg)}
+.quiz-q .opt input{margin-top:4px}
+.quiz-q.graded .opt.correct-answer{background:var(--ok-bg); border-color:var(--ok)}
+.quiz-q.graded .opt.wrong-picked{background:var(--bad-bg); border-color:var(--bad)}
+.quiz-actions{display:flex; align-items:center; gap:16px}
+.quiz-actions button{background:var(--accent); color:#fff; border:none; border-radius:8px; padding:9px 22px; font-size:.94rem; font-weight:600}
+.quiz-result{font-weight:700}
+.quiz-result.pass{color:var(--ok)}
+.quiz-result.fail{color:var(--bad)}
+
+.completion-banner{background:var(--ok-bg); border:1px solid var(--ok); color:var(--ok); border-radius:var(--radius); padding:16px 20px; margin-bottom:24px; font-weight:600}
+
+@media (max-width: 860px){
+  #main{padding:20px 18px 48px}
+  #sidebar{position:fixed; left:-260px; top:0; width:250px; z-index:40; transition:left .2s; box-shadow:2px 0 12px rgba(0,0,0,.2)}
+  #sidebar.open{left:0}
+  #topbar{display:flex}
+  #app.ready{display:block}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="card">
+    <h1>语文学习理论 学习元件</h1>
+    <p class="sub">请使用您的 DELIMA 教育邮箱（@moe-dl.edu.my）登入 Google 账号后开始学习。系统将以此邮箱记录您的学习进度，讲师可查阅。</p>
+    <div id="gate-btn-holder"></div>
+    <div class="loading" id="gate-loading">正在验证登入……</div>
+    <div class="err" id="gate-err">登入失败：只接受 @moe-dl.edu.my 的 DELIMA 教育邮箱，请使用该邮箱重新登入。</div>
+    <div class="hint">登入后本页会将您的姓名与邮箱用于学习记录；讲师将透过后台的学员记录表查阅使用与完成情况。</div>
+  </div>
+</div>
+
+<div id="app">
+  <nav id="sidebar">
+    <div class="brand">语文学习理论<small>BCNB6033 · 语文教师与语文教学</small></div>
+    <ul id="navlist"></ul>
+    <div class="progress-box">
+      <div class="plabel" id="progress-label">已浏览 0 / 15 页</div>
+      <div class="pbar"><div id="progress-fill" style="width:0%"></div></div>
+      <div class="plabel" id="quiz-label">总结评估：0 / 4 已提交</div>
+    </div>
+    <div class="who">
+      <b id="who-name">—</b>
+      <span id="who-email">—</span><br/>
+      <button id="logout-btn" type="button">登出</button>
+    </div>
+    <div class="sync-note" id="sync-note"></div>
+  </nav>
+  <div id="main-col">
+    <div id="topbar">
+      <button id="menu-btn" type="button">☰ 目录</button>
+      <strong id="topbar-title">语文学习理论</strong>
+      <span></span>
+    </div>
+    <main id="main"></main>
+  </div>
+</div>
+
+<script src="content_data.js"></script>
+<script src="quiz_data.js"></script>
+<script src="config.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(function(){
+"use strict";
+
+/* ============ constants ============ */
+var EMAIL_RE = /^[^\s@]+@moe-dl\.edu\.my$/i;
+var TOTAL_PAGES = window.CONTENT_PAGES.length;
+/* GOOGLE_CLIENT_ID and APPS_SCRIPT_URL come from config.js */
+
+var NAV_TREE = [
+  {id:"home", label:"首页"},
+  {id:"intro", label:"课题简介"},
+  {group:"单元一：语文行为心理", main:"unit1", sub:[{id:"unit1practice", label:"进深练习一"}]},
+  {group:"单元二：语文认知心理", main:"unit2", sub:[{id:"unit2practice", label:"进深练习二"}]},
+  {group:"单元三：语文人本心理", main:"unit3", sub:[{id:"unit3practice", label:"进深练习三"}]},
+  {group:"单元四：语文建构心理", main:"unit4", sub:[{id:"unit4practice", label:"进深练习四"}]},
+  {group:"单元五：语文多元智能", main:"unit5", sub:[{id:"unit5practice", label:"进深练习五"}]},
+  {id:"assessment", label:"总结评估"},
+  {id:"reflection", label:"回顾反思"},
+  {id:"relax", label:"轻松休闲区"}
+];
+
+var PAGE_BY_ID = {};
+window.CONTENT_PAGES.forEach(function(p){ PAGE_BY_ID[p.id] = p; });
+
+/* ============ state ============ */
+var student = null;       // {name, email}
+var studentDoc = null;    // local mirror of the server record
+var currentIdToken = null;
+var currentPageId = "home";
+var syncFailed = false;
+
+/* ============ helpers ============ */
+function nowTs(){ return Date.now(); }
+
+function defaultStudentDoc(name, email){
+  return {
+    name: name, email: email,
+    registeredAt: nowTs(), lastActive: nowTs(),
+    pagesVisited: {}, quizAttempts: {}, reflection: {},
+    completed: false, completedAt: null
+  };
+}
+
+function computeCompletion(){
+  var visitedCount = Object.keys(studentDoc.pagesVisited || {}).length;
+  var quizIds = window.QUIZ_DATA.map(function(q){ return q.id; });
+  var quizzesDone = quizIds.every(function(id){ return studentDoc.quizAttempts && studentDoc.quizAttempts[id]; });
+  var wasCompleted = !!studentDoc.completed;
+  var isCompleted = visitedCount >= TOTAL_PAGES && quizzesDone;
+  studentDoc.completed = isCompleted;
+  if(isCompleted && !wasCompleted){ studentDoc.completedAt = nowTs(); }
+  if(!isCompleted){ studentDoc.completedAt = null; }
+  return {visitedCount:visitedCount, quizzesDone:quizzesDone, isCompleted:isCompleted};
+}
+
+/* ---- sync with Google Apps Script backend ---- */
+var saveTimer = null;
+function saveStudentDoc(){
+  studentDoc.lastActive = nowTs();
+  computeCompletion();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(pushToServer, 300);
+}
+function setSyncNote(text, isError){
+  var el = document.getElementById("sync-note");
+  if(!el) return;
+  el.textContent = text;
+  el.style.color = isError ? "var(--bad)" : "";
+}
+function pushToServer(){
+  if(!window.APPS_SCRIPT_URL || !currentIdToken){ setSyncNote("尚未连接记录系统"); return; }
+  setSyncNote("同步中…");
+  fetch(window.APPS_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors", /* we don't need to read the response; avoids spurious CORS failures */
+    headers: {"Content-Type": "text/plain;charset=utf-8"},
+    body: JSON.stringify({idToken: currentIdToken, doc: studentDoc})
+  }).then(function(){
+    setSyncNote("已同步 · " + new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}));
+    syncFailed = false;
+  }).catch(function(){
+    setSyncNote("同步失败，将于下次操作重试", true);
+    syncFailed = true;
+  });
+}
+function fetchExistingRecord(email, idToken){
+  if(!window.APPS_SCRIPT_URL) return Promise.resolve(null);
+  var url = window.APPS_SCRIPT_URL + "?idToken=" + encodeURIComponent(idToken);
+  return fetch(url).then(function(res){ return res.json(); }).then(function(json){
+    return (json && json.found) ? json.doc : null;
+  }).catch(function(){ return null; });
+}
+
+/* ============ Google Sign-In ============ */
+function decodeJwt(token){
+  try{
+    var payload = token.split(".")[1];
+    payload = payload.replace(/-/g,"+").replace(/_/g,"/");
+    while(payload.length % 4) payload += "=";
+    var json = decodeURIComponent(atob(payload).split("").map(function(c){
+      return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(""));
+    return JSON.parse(json);
+  }catch(e){ return null; }
+}
+
+window.handleGoogleCredential = function(response){
+  var payload = decodeJwt(response.credential);
+  var errEl = document.getElementById("gate-err");
+  if(!payload || !payload.email || !EMAIL_RE.test(payload.email)){
+    errEl.style.display = "block";
+    return;
+  }
+  errEl.style.display = "none";
+  document.getElementById("gate-loading").style.display = "block";
+  currentIdToken = response.credential;
+  startSession(payload.name || payload.email, payload.email.toLowerCase());
+};
+
+function initGoogleSignIn(){
+  if(!window.google || !window.google.accounts || !window.GOOGLE_CLIENT_ID){
+    setTimeout(initGoogleSignIn, 200);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: window.GOOGLE_CLIENT_ID,
+    callback: window.handleGoogleCredential,
+    hd: "moe-dl.edu.my"
+  });
+  google.accounts.id.renderButton(
+    document.getElementById("gate-btn-holder"),
+    {theme:"outline", size:"large", text:"signin_with", locale:"zh-CN"}
+  );
+}
+initGoogleSignIn();
+
+document.getElementById("logout-btn").addEventListener("click", function(){
+  currentIdToken = null;
+  location.reload();
+});
+
+function startSession(name, email){
+  student = {name:name, email:email};
+
+  async function init(){
+    var existing = await fetchExistingRecord(email, currentIdToken);
+    if(existing){
+      studentDoc = existing;
+      studentDoc.name = name;
+      studentDoc.email = email;
+    } else {
+      studentDoc = defaultStudentDoc(name, email);
+    }
+    computeCompletion();
+    saveStudentDoc();
+
+    document.getElementById("who-name").textContent = name;
+    document.getElementById("who-email").textContent = email;
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("app").classList.add("ready");
+    buildNav();
+    renderPage("home");
+  }
+  init();
+}
+
+/* ============ nav ============ */
+function buildNav(){
+  var ul = document.getElementById("navlist");
+  ul.innerHTML = "";
+  NAV_TREE.forEach(function(item){
+    if(item.group){
+      var li0 = document.createElement("li");
+      li0.className = "group-label";
+      li0.textContent = item.group;
+      ul.appendChild(li0);
+      ul.appendChild(navItem(item.main, PAGE_BY_ID[item.main].title.replace(/^单元[一二三四五]：?/,""), false));
+      item.sub.forEach(function(s){ ul.appendChild(navItem(s.id, s.label, true)); });
+    } else {
+      ul.appendChild(navItem(item.id, item.label, false));
+    }
+  });
+}
+function navItem(pageId, label, isSub){
+  var li = document.createElement("li");
+  var a = document.createElement("a");
+  a.href = "#" + pageId;
+  a.dataset.page = pageId;
+  a.className = isSub ? "sub" : "";
+  var dot = document.createElement("span");
+  dot.className = "dot";
+  a.appendChild(dot);
+  var txt = document.createElement("span");
+  txt.textContent = label;
+  a.appendChild(txt);
+  a.addEventListener("click", function(e){
+    e.preventDefault();
+    renderPage(pageId);
+    document.getElementById("sidebar").classList.remove("open");
+  });
+  li.appendChild(a);
+  return li;
+}
+function refreshNavState(){
+  var links = document.querySelectorAll("#navlist a");
+  links.forEach(function(a){
+    var pid = a.dataset.page;
+    a.classList.toggle("active", pid === currentPageId);
+    a.classList.toggle("visited", !!(studentDoc.pagesVisited && studentDoc.pagesVisited[pid]));
+  });
+  var visitedCount = Object.keys(studentDoc.pagesVisited || {}).length;
+  document.getElementById("progress-label").textContent = "已浏览 " + visitedCount + " / " + TOTAL_PAGES + " 页";
+  document.getElementById("progress-fill").style.width = Math.round(visitedCount/TOTAL_PAGES*100) + "%";
+  var quizDoneCount = window.QUIZ_DATA.filter(function(q){ return studentDoc.quizAttempts && studentDoc.quizAttempts[q.id]; }).length;
+  document.getElementById("quiz-label").textContent = "总结评估：" + quizDoneCount + " / " + window.QUIZ_DATA.length + " 已提交";
+}
+
+document.getElementById("menu-btn").addEventListener("click", function(){
+  document.getElementById("sidebar").classList.toggle("open");
+});
+
+/* ============ page rendering ============ */
+function renderPage(pageId){
+  var page = PAGE_BY_ID[pageId];
+  if(!page) return;
+  currentPageId = pageId;
+  document.getElementById("topbar-title").textContent = page.title;
+
+  if(!studentDoc.pagesVisited) studentDoc.pagesVisited = {};
+  if(!studentDoc.pagesVisited[pageId]){
+    studentDoc.pagesVisited[pageId] = nowTs();
+    saveStudentDoc();
+  }
+
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+  var h2 = document.createElement("h2");
+  h2.className = "page-title";
+  h2.textContent = page.title;
+  main.appendChild(h2);
+
+  if(pageId === "assessment" && computeCompletion().isCompleted){
+    var banner = document.createElement("div");
+    banner.className = "completion-banner";
+    banner.textContent = "恭喜！您已完成本学习元件的所有页面浏览与总结评估。";
+    main.appendChild(banner);
+  }
+
+  page.sections.forEach(function(sec){
+    if(pageId === "assessment" && sec.type === "QuizTestIdevice") return; // rendered separately below
+    main.appendChild(renderSection(sec));
+  });
+
+  if(pageId === "assessment"){
+    window.QUIZ_DATA.forEach(function(qz){ main.appendChild(renderQuizSet(qz)); });
+  }
+
+  window.scrollTo(0,0);
+  refreshNavState();
+}
+
+function renderSection(sec){
+  var wrap = document.createElement("div");
+  wrap.className = "section-block";
+  if(sec.heading){
+    var h3 = document.createElement("h3");
+    h3.className = "sec-heading";
+    h3.textContent = sec.heading;
+    wrap.appendChild(h3);
+  }
+  var body = document.createElement("div");
+  body.className = "content-block card-box";
+
+  if(sec.type === "activityIdevice"){
+    body.innerHTML = sec.html;
+    wrap.appendChild(body);
+    wrap.appendChild(renderReflectionBox(sec.heading || "reflection"));
+    return wrap;
+  }
+
+  body.innerHTML = sec.html;
+  wrap.appendChild(body);
+  wireInteractiveContent(body);
+  return wrap;
+}
+
+/* -------- true/false reveal-on-answer & hints -------- */
+function wireInteractiveContent(container){
+  container.querySelectorAll(".iDevice_hint").forEach(function(hintBox){
+    var title = hintBox.querySelector(".iDevice_hint_title");
+    var content = hintBox.querySelector(".iDevice_hint_content");
+    if(title && content){
+      title.classList.add("hint-title");
+      content.classList.add("hint-content");
+      title.addEventListener("click", function(){ content.classList.toggle("show"); });
+    }
+  });
+  container.querySelectorAll(".question").forEach(function(qBlock){
+    qBlock.classList.add("tf-question");
+    var stem = qBlock.querySelector(".iDevice_content");
+    if(stem) stem.classList.add("stem");
+    var radios = qBlock.querySelectorAll('input[type="radio"]');
+    var feedback = qBlock.querySelector(".feedback");
+    if(feedback){
+      feedback.classList.add("tf-feedback");
+      var resultStrong = feedback.querySelector('[id$="-result"]');
+      if(resultStrong) resultStrong.classList.add("verdict");
+      radios.forEach(function(r){
+        r.addEventListener("change", function(){ feedback.classList.add("show"); });
+      });
+    }
+  });
+  container.querySelectorAll("form.cloze-form, form.activity-form.cloze-form").forEach(function(form){
+    wireClozeForm(form);
+  });
+  container.querySelectorAll('div[id^="cloze"]').forEach(function(div){
+    var form = div.closest("form");
+    if(form) wireClozeForm(form);
+  });
+}
+
+/* -------- cloze decode + grading (same obfuscation scheme as the original eXe package) -------- */
+function decode64(s){
+  try{
+    var bin = atob(s.trim());
+    var out = "";
+    for(var i=0;i<bin.length;i++){ out += bin.charAt(i); }
+    return out;
+  }catch(e){ return ""; }
+}
+function jsUnescape(s){
+  var out = "";
+  var i = 0;
+  while(i < s.length){
+    if(s[i] === "%" && s[i+1] === "u" && i+6 <= s.length){
+      var hex = s.substr(i+2,4);
+      if(/^[0-9a-fA-F]{4}$/.test(hex)){
+        out += String.fromCharCode(parseInt(hex,16));
+        i += 6; continue;
+      }
+    }
+    if(s[i] === "%" && i+3 <= s.length){
+      var hex2 = s.substr(i+1,2);
+      if(/^[0-9a-fA-F]{2}$/.test(hex2)){
+        out += String.fromCharCode(parseInt(hex2,16));
+        i += 3; continue;
+      }
+    }
+    out += s[i]; i++;
+  }
+  return out;
+}
+function decodeClozeAnswer(b64){
+  var s = jsUnescape(decode64(b64));
+  var o = "X".charCodeAt(0);
+  var result = "";
+  for(var i=0;i<s.length;i++){
+    o = o ^ s.charCodeAt(i);
+    result += String.fromCharCode(o);
+  }
+  return result;
+}
+
+var clozeWired = new WeakSet();
+function wireClozeForm(form){
+  if(clozeWired.has(form)) return;
+  clozeWired.add(form);
+  var container = form.querySelector('[id^="cloze"]');
+  if(!container) return;
+  var checkBtn = form.querySelector('input[id^="getScore"]');
+  var scoreDiv = form.querySelector('.score, [id^="clozeScore"]');
+  form.addEventListener("submit", function(e){ e.preventDefault(); });
+  if(!checkBtn) return;
+  checkBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    var selects = container.querySelectorAll("select");
+    var correctCount = 0;
+    selects.forEach(function(sel){
+      var ansSpan = document.getElementById("clozeAnswer" + sel.id.replace(/^clozeBlank/, ""));
+      var correctText = ansSpan ? decodeClozeAnswer(ansSpan.textContent) : null;
+      sel.classList.remove("correct","incorrect");
+      if(sel.value && correctText !== null && sel.value === correctText){
+        sel.classList.add("correct"); correctCount++;
+      } else if(sel.value){
+        sel.classList.add("incorrect");
+      }
+    });
+    if(scoreDiv){ scoreDiv.textContent = "得分：" + correctCount + " / " + selects.length; }
+  });
+}
+
+/* -------- reflection textarea -------- */
+function renderReflectionBox(key){
+  var box = document.createElement("div");
+  box.className = "activity-box card-box";
+  var ta = document.createElement("textarea");
+  ta.placeholder = "在此写下您的反思……";
+  if(studentDoc.reflection && studentDoc.reflection[key]) ta.value = studentDoc.reflection[key];
+  var row = document.createElement("div");
+  row.className = "save-row";
+  var btn = document.createElement("button");
+  btn.type = "button"; btn.className = "save-btn"; btn.textContent = "保存反思";
+  var msg = document.createElement("span");
+  msg.className = "saved-msg"; msg.textContent = "已保存";
+  btn.addEventListener("click", function(){
+    if(!studentDoc.reflection) studentDoc.reflection = {};
+    studentDoc.reflection[key] = ta.value;
+    saveStudentDoc();
+    msg.classList.add("show");
+    setTimeout(function(){ msg.classList.remove("show"); }, 2000);
+  });
+  row.appendChild(btn); row.appendChild(msg);
+  box.appendChild(ta); box.appendChild(row);
+  return box;
+}
+
+/* -------- assessment quizzes -------- */
+function renderQuizSet(qz){
+  var box = document.createElement("div");
+  box.className = "quiz-set";
+  var h4 = document.createElement("h4"); h4.textContent = qz.title;
+  var pl = document.createElement("div"); pl.className = "passline";
+  pl.textContent = "每题" + Math.round(100/qz.questions.length) + "%，满分100%，及格分数为" + qz.passRate + "%。";
+  box.appendChild(h4); box.appendChild(pl);
+
+  var attempt = studentDoc.quizAttempts && studentDoc.quizAttempts[qz.id];
+
+  qz.questions.forEach(function(q, qi){
+    var qDiv = document.createElement("div");
+    qDiv.className = "quiz-q";
+    var stem = document.createElement("div"); stem.className = "stem"; stem.textContent = (qi+1) + ". " + q.q;
+    qDiv.appendChild(stem);
+    if(q.image){
+      var img = document.createElement("img");
+      img.src = "images/" + q.image;
+      img.alt = "quiz image";
+      qDiv.appendChild(img);
+    }
+    var chosen = attempt ? attempt.answers[qi] : null;
+    q.options.forEach(function(opt, oi){
+      var lbl = document.createElement("label");
+      lbl.className = "opt";
+      var radio = document.createElement("input");
+      radio.type = "radio"; radio.name = qz.id + "_q" + qi; radio.value = oi;
+      if(chosen === oi) radio.checked = true;
+      if(attempt) radio.disabled = true;
+      var span = document.createElement("span"); span.textContent = opt;
+      lbl.appendChild(radio); lbl.appendChild(span);
+      qDiv.appendChild(lbl);
+    });
+    if(attempt){ markGraded(qDiv, q, chosen); }
+    box.appendChild(qDiv);
+  });
+
+  var actions = document.createElement("div");
+  actions.className = "quiz-actions";
+  if(attempt){
+    var resultSpan = document.createElement("span");
+    resultSpan.className = "quiz-result " + (attempt.score/attempt.total*100 >= qz.passRate ? "pass" : "fail");
+    resultSpan.textContent = "已提交 · 得分 " + attempt.score + "/" + attempt.total + "（" + Math.round(attempt.score/attempt.total*100) + "%）" + (attempt.score/attempt.total*100 >= qz.passRate ? " · 通过" : " · 未达及格");
+    var retakeBtn = document.createElement("button");
+    retakeBtn.type = "button"; retakeBtn.textContent = "重新作答";
+    retakeBtn.addEventListener("click", function(){
+      delete studentDoc.quizAttempts[qz.id];
+      saveStudentDoc();
+      renderPage("assessment");
+    });
+    actions.appendChild(resultSpan);
+    actions.appendChild(retakeBtn);
+  } else {
+    var submitBtn = document.createElement("button");
+    submitBtn.type = "button"; submitBtn.textContent = "提交本测验";
+    submitBtn.addEventListener("click", function(){
+      var answers = [];
+      var score = 0;
+      qz.questions.forEach(function(q, qi){
+        var checked = box.querySelector('input[name="' + qz.id + '_q' + qi + '"]:checked');
+        var val = checked ? parseInt(checked.value,10) : null;
+        answers.push(val);
+        if(val === q.answer) score++;
+      });
+      if(!studentDoc.quizAttempts) studentDoc.quizAttempts = {};
+      studentDoc.quizAttempts[qz.id] = {score:score, total:qz.questions.length, answers:answers, submittedAt: nowTs()};
+      saveStudentDoc();
+      renderPage("assessment");
+    });
+    actions.appendChild(submitBtn);
+  }
+  box.appendChild(actions);
+  return box;
+}
+function markGraded(qDiv, q, chosen){
+  qDiv.classList.add("graded");
+  var opts = qDiv.querySelectorAll(".opt");
+  opts.forEach(function(optEl, oi){
+    if(oi === q.answer) optEl.classList.add("correct-answer");
+    else if(oi === chosen) optEl.classList.add("wrong-picked");
+  });
+}
+
+})();
+</script>
+</body>
+</html>
