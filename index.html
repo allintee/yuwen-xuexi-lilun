@@ -149,9 +149,10 @@ input{font-family:inherit}
 .content-block{font-size:1rem}
 .content-block p{margin:0 0 12px}
 .content-block table{width:100%; border-collapse:collapse; margin:14px 0; border-radius:var(--radius-sm); overflow:hidden}
-.content-block td,.content-block th{padding:10px 12px; vertical-align:top; border:none; border-bottom:1px solid var(--border)}
+.content-block td,.content-block th{padding:10px 12px; vertical-align:top; border:none; border-bottom:1px solid var(--border); min-width:60px}
 .content-block tr:last-child td{border-bottom:none}
 .content-block img{border-radius:var(--radius-sm); display:block; margin:12px auto; max-width:100%; height:auto; box-shadow:var(--shadow)}
+.content-block table img{min-width:110px}
 .content-block video{width:100%; max-width:640px; border-radius:var(--radius-sm); display:block; margin:12px auto; background:#000; box-shadow:var(--shadow)}
 .content-block hr{border:none; border-top:1px solid var(--border); margin:22px 0}
 .content-block a{word-break:break-word; text-decoration-color:var(--accent-dim)}
@@ -175,6 +176,8 @@ input{font-family:inherit}
    本站一律以 JavaScript 运作，这些元素永远不需要显示给学员 */
 [id^="clozeAnswer"]{display:none}
 .js-hidden{display:none}
+/* "Cloze (1):" 等题号标签只给屏幕阅读器用，画面上不需要显示 */
+.sr-av,.js-sr-av{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
 
 .cloze-block{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow)}
 .cloze-block select{border:1px solid var(--border); border-radius:6px; padding:4px 8px; background:var(--panel-2); color:var(--text); font-size:.94rem; margin:0 2px; transition:border-color .15s ease}
