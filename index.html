@@ -132,7 +132,7 @@ input{font-family:inherit}
   background:var(--panel); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:30;
 }
 #topbar button{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text); font-weight:600; font-size:.88rem}
-#main{flex:1; padding:40px 44px 72px; max-width:880px; width:100%; margin:0 auto}
+#main{flex:1; padding:40px 48px 72px; max-width:1080px; width:100%; margin:0 auto}
 #main h2.page-title{
   font-family:var(--font-serif); font-weight:700; font-size:1.65rem; margin:0 0 26px; padding-bottom:16px;
   border-bottom:3px solid var(--accent-dim); position:relative; color:var(--text);
@@ -170,6 +170,11 @@ input{font-family:inherit}
 .hint-title{cursor:pointer; color:var(--accent); font-size:.85rem; text-decoration:underline; display:inline-block; margin:4px 0; font-weight:600}
 .hint-content{display:none; font-size:.88rem; color:var(--text-dim); background:var(--panel-2); padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:8px; border-left:3px solid var(--accent-dim)}
 .hint-content.show{display:block}
+
+/* eXe 原始导出内容遗留的辅助元素：填空题的编码答案、以及"请启用 JavaScript"提示，
+   本站一律以 JavaScript 运作，这些元素永远不需要显示给学员 */
+[id^="clozeAnswer"]{display:none}
+.js-hidden{display:none}
 
 .cloze-block{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow)}
 .cloze-block select{border:1px solid var(--border); border-radius:6px; padding:4px 8px; background:var(--panel-2); color:var(--text); font-size:.94rem; margin:0 2px; transition:border-color .15s ease}
